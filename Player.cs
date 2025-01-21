@@ -18,7 +18,6 @@ public class Player : MonoBehaviour
     private bool isShooting = false;
     private float nextShotTime = 0f;
     private float damageCooldown = 0.1f;
-    private float muzzleFlashDuration = 0.1f;
     void Start()
     {
         GunFire_Prefab.SetActive(false);  
@@ -60,13 +59,10 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        if (isShooting)
+        if (isShooting && Time.time >= nextShotTime)
         {
-            Flash();
-           if (Time.time >= nextShotTime)
-              {  
-                Shooting();
-              }
+            Shooting();
+            StartCoroutine(Flash());
         }
 
         Vector3 Move = transform.right * joystick.Horizontal * 10 * Time.deltaTime + transform.forward * joystick.Vertical * 10 * Time.deltaTime;
@@ -79,15 +75,15 @@ public class Player : MonoBehaviour
         {
             isShooting = true;
             Shooting();
-            Flash();
+            StartCoroutine(Flash());
         }
     }
 
-    public void Flash()
+    private IEnumerator Flash()
     {
         GunFire_Prefab.SetActive(true);
-
-        StartCoroutine(DisableMuzzleFlash());
+        yield return new WaitForSeconds(0.05f);
+        GunFire_Prefab.SetActive(false);
     }
     public void Shooting()
     {
@@ -107,13 +103,6 @@ public class Player : MonoBehaviour
 
             nextShotTime = Time.time + damageCooldown;
         }
-    
-
-    private IEnumerator DisableMuzzleFlash()
-    {
-        yield return new WaitForSeconds(muzzleFlashDuration);
-        GunFire_Prefab.SetActive(false);
-    }
 
     public void Up(BaseEventData eventData)
     {
